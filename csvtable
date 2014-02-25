@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+def filter(word):
+    remove = ["\n","\r"]
+    escape = ["%"]
+    for r in remove:
+        word = word.replace(r,"")
+    for e in escape:
+        word = word.replace(e,"\\" + e)
+    return word
+
+def print_table_heading():
+    sys.stdout.write("\\begin{table}\n")
+    sys.stdout.write("\t\\centering\n")
+    sys.stdout.write("\t\\begin{tabular}")
+    
+def print_table_ending():
+    sys.stdout.write("\t\\end{tabular}\n")
+    sys.stdout.write("\\end{table}\n")
+
+def print_table_format(line):
+    global sep
+    count = len(line.split(sep))
+    sys.stdout.write("{")
+    for i in range(0,count):
+        sys.stdout.write("|l")
+    sys.stdout.write("|}\n")
+
+def print_line(line):
+    global sep
+    parts = line.split(sep)
+    sys.stdout.write("\t\t" + parts[0])
+    if len(parts) > 1:
+        parts = parts[1:]
+        for p in parts:
+            sys.stdout.write(" & " + filter(p))
+    sys.stdout.write(" \\\\ \n")
+    
+if len(sys.argv) != 2:
+    print "You must supply a filename"
+    print "csvtable filename.csv"
+    sys.exit(1)
+
+filename = sys.argv[1]
+sep = "\t"
+
+if not os.path.isfile(filename):
+    print "Argument supplied must be an existing file"
+    sys.exit(1)
+
+headings_complete = False
+
+print_table_heading()
+
+with open(filename) as f:
+    for line in f:
+        if not headings_complete:
+            print_table_format(line)
+            print_line(line)
+            sys.stdout.write("\t\t\\hline\n")
+            headings_complete = True
+        else:
+            print_line(line)
+
+print_table_ending()
+    
+            
+        
