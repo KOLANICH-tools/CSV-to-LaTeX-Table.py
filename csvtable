@@ -3,7 +3,7 @@
 import sys
 import os
 
-def filter(word):
+def filter_words(word):
     remove = ["\n","\r"]
     escape = ["%"]
     for r in remove:
@@ -18,7 +18,7 @@ def print_table_heading():
     sys.stdout.write("\t\\begin{tabular}")
     
 def print_table_ending():
-    sys.stdout.write("\t\\end{tabular}\n")
+    sys.stdout.write("\t\t\\hline\n\t\\end{tabular}\n")
     sys.stdout.write("\\end{table}\n")
 
 def print_table_format(line):
@@ -31,12 +31,8 @@ def print_table_format(line):
 
 def print_line(line):
     global sep
-    parts = line.split(sep)
-    sys.stdout.write("\t\t" + parts[0])
-    if len(parts) > 1:
-        parts = parts[1:]
-        for p in parts:
-            sys.stdout.write(" & " + filter(p))
+    sys.stdout.write("\t\t")
+    sys.stdout.write(filter_words(line).replace(sep," & "))
     sys.stdout.write(" \\\\ \n")
     
 if len(sys.argv) != 2:
@@ -59,6 +55,7 @@ with open(filename) as f:
     for line in f:
         if not headings_complete:
             print_table_format(line)
+            sys.stdout.write("\t\t\\hline\n")
             print_line(line)
             sys.stdout.write("\t\t\\hline\n")
             headings_complete = True
