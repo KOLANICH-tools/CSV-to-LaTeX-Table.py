@@ -2,6 +2,9 @@
 
 import sys
 import os
+from optparse import OptionParser
+import re
+
 
 def filter_words(word):
     remove = ["\n","\r"]
@@ -22,43 +25,68 @@ def print_table_ending():
     sys.stdout.write("\\end{table}\n")
 
 def print_table_format(line):
-    global sep
-    count = len(line.split(sep))
+    global options
+    count = len(line.split(options.delimiter))
     sys.stdout.write("{")
     for i in range(0,count):
         sys.stdout.write("|l")
     sys.stdout.write("|}\n")
 
+def print_table_header(line):
+    global options
+    sys.stdout.write("\t\t\\hline\n")
+    print_line(line)
+    sys.stdout.write("\t\t\\hline\n")
+
 def print_line(line):
-    global sep
+    global options
     sys.stdout.write("\t\t")
-    sys.stdout.write(filter_words(line).replace(sep," & "))
+    filtered = filter_words(line)
+    if options.ignore_multiple:
+        filtered = re.sub(re.escape(options.delimiter)*2 + '+', options.delimiter, filtered)
+    sys.stdout.write(filtered.replace(options.delimiter," & "))
     sys.stdout.write(" \\\\ \n")
     
-if len(sys.argv) != 2:
-    print "You must supply a filename"
-    print "csvtable filename.csv"
-    sys.exit(1)
 
-filename = sys.argv[1]
-sep = "\t"
+
+parser = OptionParser()
+
+parser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
+parser.add_option("-d", "--delimeter",dest="delimiter",type="string",default=",",help="Specify the delimiter to use for splitting colums.")
+parser.add_option("-m", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
+parser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character")
+parser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert")
+#TODO: Latex table positioning
+#TODO: Table centering
+
+(options,args) = parser.parse_args()
+if options.use_tab:
+    options.delimiter = "\t"
+print options
+
+if(options.filename == ""):
+    filename = sys.argv[len(sys.argv)-1]
+else:
+    filename = options.filename
 
 if not os.path.isfile(filename):
-    print "Argument supplied must be an existing file"
+    print filename,"is not a valid file name. The filename should be specified with the '-f' option, or be the last argument."
     sys.exit(1)
+    
 
-headings_complete = False
+format_written = False
+header_written = False
 
 print_table_heading()
 
 with open(filename) as f:
     for line in f:
-        if not headings_complete:
+        if not format_written:
             print_table_format(line)
-            sys.stdout.write("\t\t\\hline\n")
-            print_line(line)
-            sys.stdout.write("\t\t\\hline\n")
-            headings_complete = True
+            format_written = True
+        if options.use_header and not header_written:
+            print_table_header(line)
+            header_written = True
         else:
             print_line(line)
 
