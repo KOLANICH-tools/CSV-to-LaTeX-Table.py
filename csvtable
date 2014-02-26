@@ -7,6 +7,7 @@ import re
 
 
 def filter_words(word):
+    '''Remove or escape certain characters so that they don't get inserted into the table'''
     remove = ["\n","\r"]
     escape = ["%"]
     for r in remove:
@@ -16,37 +17,47 @@ def filter_words(word):
     return word
 
 def print_table_heading():
+    '''Prints the LaTeX heading for the table'''
     sys.stdout.write("\\begin{table}\n")
     sys.stdout.write("\t\\centering\n")
     sys.stdout.write("\t\\begin{tabular}")
     
 def print_table_ending():
+    '''Prints the LaTeX ending for the table'''
     sys.stdout.write("\t\t\\hline\n\t\\end{tabular}\n")
     sys.stdout.write("\\end{table}\n")
 
 def print_table_format(line):
+    '''Prints the format of the table, based on splitting the first line by the delimiter'''
     global options
-    count = len(line.split(options.delimiter))
+    count = len(correct_multiple_columns(line).split(options.delimiter))
     sys.stdout.write("{")
     for i in range(0,count):
         sys.stdout.write("|l")
     sys.stdout.write("|}\n")
 
 def print_table_header(line):
+    '''Print the first line of the table'''
     global options
     sys.stdout.write("\t\t\\hline\n")
     print_line(line)
     sys.stdout.write("\t\t\\hline\n")
 
 def print_line(line):
+    '''Print a regular line, but formatted'''
     global options
     sys.stdout.write("\t\t")
     filtered = filter_words(line)
-    if options.ignore_multiple:
-        filtered = re.sub(re.escape(options.delimiter)*2 + '+', options.delimiter, filtered)
+    filtered = correct_multiple_columns(filtered)
     sys.stdout.write(filtered.replace(options.delimiter," & "))
     sys.stdout.write(" \\\\ \n")
     
+def correct_multiple_columns(line):
+    '''Corrects multiple delimiters if they should be corrected'''
+    global options
+    if options.ignore_multiple:
+        line = re.sub(re.escape(options.delimiter)*2 + '+', options.delimiter, line)
+    return line
 
 
 parser = OptionParser()
@@ -60,10 +71,12 @@ parser.add_option("-f", "--file",dest="filename",default="",help="Specify the fi
 #TODO: Table centering
 
 (options,args) = parser.parse_args()
+
+#If the tab flag is set, change the delimiter
 if options.use_tab:
     options.delimiter = "\t"
-print options
 
+#If a filename isn't specified then attempt to take the last argument
 if(options.filename == ""):
     filename = sys.argv[len(sys.argv)-1]
 else:
