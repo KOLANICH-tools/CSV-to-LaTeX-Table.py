@@ -18,13 +18,15 @@ def filter_words(word):
 
 def print_table_heading():
     '''Prints the LaTeX heading for the table'''
+    global options
     sys.stdout.write("\\begin{table}\n")
     sys.stdout.write("\t\\centering\n")
-    sys.stdout.write("\t\\begin{tabular}")
+    sys.stdout.write("\t\\begin{" + options.environment + "}")
     
 def print_table_ending():
     '''Prints the LaTeX ending for the table'''
-    sys.stdout.write("\t\t\\hline\n\t\\end{tabular}\n")
+    global options
+    sys.stdout.write("\t\t\\hline\n\t\\end{" + options.environment + "}\n")
     sys.stdout.write("\\end{table}\n")
 
 def print_table_format(line):
@@ -33,23 +35,34 @@ def print_table_format(line):
     count = len(correct_multiple_columns(line).split(options.delimiter))
     sys.stdout.write("{")
     for i in range(0,count):
-        sys.stdout.write("|l")
+        if options.multiline:
+            sys.stdout.write("|X")
+        else:
+            sys.stdout.write("|l")
     sys.stdout.write("|}\n")
 
 def print_table_header(line):
     '''Print the first line of the table'''
     global options
     sys.stdout.write("\t\t\\hline\n")
-    print_line(line)
+    header = get_line(line)
+    if options.multiline:
+        header = header.split(" & ")
+        header = map(lambda x : "\multicolumn{1}{|X|}{\centering " + x + "}",header)
+        header = " & ".join(header)
+    print_line(header)
     sys.stdout.write("\t\t\\hline\n")
+
+def get_line(line):
+    filtered = filter_words(line)
+    filtered = correct_multiple_columns(filtered)
+    return filtered.replace(options.delimiter," & ")
 
 def print_line(line):
     '''Print a regular line, but formatted'''
     global options
     sys.stdout.write("\t\t")
-    filtered = filter_words(line)
-    filtered = correct_multiple_columns(filtered)
-    sys.stdout.write(filtered.replace(options.delimiter," & "))
+    sys.stdout.write(get_line(line))
     sys.stdout.write(" \\\\ \n")
     
 def correct_multiple_columns(line):
@@ -67,6 +80,9 @@ parser.add_option("-d", "--delimeter",dest="delimiter",type="string",default=","
 parser.add_option("-m", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
 parser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character")
 parser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert")
+parser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment")
+parser.add_option("-u", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding")
+
 #TODO: Latex table positioning
 #TODO: Table centering
 
@@ -75,6 +91,11 @@ parser.add_option("-f", "--file",dest="filename",default="",help="Specify the fi
 #If the tab flag is set, change the delimiter
 if options.use_tab:
     options.delimiter = "\t"
+    
+if options.tabularx:
+    options.environment = "tabularx"
+else:
+    options.environment = "tabular"
 
 #If a filename isn't specified then attempt to take the last argument
 if(options.filename == ""):
