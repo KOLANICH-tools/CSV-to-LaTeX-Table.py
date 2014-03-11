@@ -6,87 +6,100 @@ from optparse import OptionParser
 import re
 
 
-def filter_words(word):
-    '''Remove or escape certain characters so that they don't get inserted into the table'''
-    remove = ["\n","\r"]
-    escape = ["%"]
-    for r in remove:
-        word = word.replace(r,"")
-    for e in escape:
-        word = word.replace(e,"\\" + e)
-    return word
+class Parser(object):
 
-def print_table_heading():
-    '''Prints the LaTeX heading for the table'''
-    global options
-    sys.stdout.write("\\begin{table}\n")
-    sys.stdout.write("\t\\centering\n")
-    sys.stdout.write("\t\\begin{" + options.environment + "}")
+    def filter_words(self,word):
+        '''Remove or escape certain characters so that they don't get inserted into the table'''
+        remove = ["\n","\r"]
+        escape = ["%"]
+        for r in remove:
+            word = word.replace(r,"")
+        for e in escape:
+            word = word.replace(e,"\\" + e)
+        return word
+
+    def print_table_heading(self):
+        '''Prints the LaTeX heading for the table'''
+        sys.stdout.write("\\begin{table}\n")
+        sys.stdout.write("\t\\centering\n")
+        sys.stdout.write("\t\\begin{" + self.options.environment + "}")
     
-def print_table_ending():
-    '''Prints the LaTeX ending for the table'''
-    global options
-    sys.stdout.write("\t\t\\hline\n\t\\end{" + options.environment + "}\n")
-    sys.stdout.write("\\end{table}\n")
+    def print_table_ending(self):
+        '''Prints the LaTeX ending for the table'''
+        sys.stdout.write("\t\t\\hline\n\t\\end{" + self.options.environment + "}\n")
+        sys.stdout.write("\\end{table}\n")
 
-def print_table_format(line):
-    '''Prints the format of the table, based on splitting the first line by the delimiter'''
-    global options
-    count = len(correct_multiple_columns(line).split(options.delimiter))
-    sys.stdout.write("{")
-    for i in range(0,count):
-        if options.multiline:
-            sys.stdout.write("|X")
-        else:
-            sys.stdout.write("|l")
-    sys.stdout.write("|}\n")
+    def print_table_format(self,line):
+        '''Prints the format of the table, based on splitting the first line by the delimiter'''
+        count = len(self.correct_multiple_columns(line).split(self.options.delimiter))
+        sys.stdout.write("{")
+        for i in range(0,count):
+            if self.options.multiline:
+                sys.stdout.write("|X")
+            else:
+                sys.stdout.write("|l")
+        sys.stdout.write("|}\n")
 
-def print_table_header(line):
-    '''Print the first line of the table'''
-    global options
-    sys.stdout.write("\t\t\\hline\n")
-    header = get_line(line)
-    if options.multiline:
-        header = header.split(" & ")
-        header = map(lambda x : "\multicolumn{1}{|X|}{\centering " + x + "}",header)
-        header = " & ".join(header)
-    print_line(header)
-    sys.stdout.write("\t\t\\hline\n")
+    def print_table_header(self,line):
+        '''Print the first line of the table'''
+        sys.stdout.write("\t\t\\hline\n")
+        header = self.get_line(line)
+        if self.options.multiline:
+            header = header.split(" & ")
+            header = map(lambda x : "\multicolumn{1}{|X|}{\centering " + x + "}",header)
+            header = " & ".join(header)
+        self.print_line(header)
+        sys.stdout.write("\t\t\\hline\n")
 
-def get_line(line):
-    filtered = filter_words(line)
-    filtered = correct_multiple_columns(filtered)
-    return filtered.replace(options.delimiter," & ")
+    def get_line(self,line):
+        filtered = self.filter_words(line)
+        filtered = self.correct_multiple_columns(filtered)
+        return filtered.replace(self.options.delimiter," & ")
 
-def print_line(line):
-    '''Print a regular line, but formatted'''
-    global options
-    sys.stdout.write("\t\t")
-    sys.stdout.write(get_line(line))
-    sys.stdout.write(" \\\\ \n")
+    def print_line(self,line):
+        '''Print a regular line, but formatted'''
+        sys.stdout.write("\t\t")
+        sys.stdout.write(self.get_line(line))
+        sys.stdout.write(" \\\\ \n")
     
-def correct_multiple_columns(line):
-    '''Corrects multiple delimiters if they should be corrected'''
-    global options
-    if options.ignore_multiple:
-        line = re.sub(re.escape(options.delimiter)*2 + '+', options.delimiter, line)
-    return line
+    def correct_multiple_columns(self,line):
+        '''Corrects multiple delimiters if they should be corrected'''
+        if self.options.ignore_multiple:
+            line = re.sub(re.escape(self.options.delimiter)*2 + '+', self.options.delimiter, line)
+        return line
+        
+    def parse(self,filename):
+        self.print_table_heading()
+        format_written = False
+        header_written = False
+        with open(filename) as f:
+            for line in f:
+                if not format_written:
+                    self.print_table_format(line)
+                    format_written = True
+                if self.options.use_header and not header_written:
+                    self.print_table_header(line)
+                    header_written = True
+                else:
+                    self.print_line(line)
+
+        self.print_table_ending()
 
 
-parser = OptionParser()
+optionparser = OptionParser()
 
-parser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
-parser.add_option("-d", "--delimeter",dest="delimiter",type="string",default=",",help="Specify the delimiter to use for splitting colums.")
-parser.add_option("-m", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
-parser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character")
-parser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert")
-parser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment")
-parser.add_option("-u", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding")
+optionparser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
+optionparser.add_option("-d", "--delimeter",dest="delimiter",type="string",default=",",help="Specify the delimiter to use for splitting colums.")
+optionparser.add_option("-m", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
+optionparser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character")
+optionparser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert")
+optionparser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment")
+optionparser.add_option("-u", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding")
 
 #TODO: Latex table positioning
 #TODO: Table centering
 
-(options,args) = parser.parse_args()
+(options,args) = optionparser.parse_args()
 
 #If the tab flag is set, change the delimiter
 if options.use_tab:
@@ -108,23 +121,9 @@ if not os.path.isfile(filename):
     sys.exit(1)
     
 
-format_written = False
-header_written = False
-
-print_table_heading()
-
-with open(filename) as f:
-    for line in f:
-        if not format_written:
-            print_table_format(line)
-            format_written = True
-        if options.use_header and not header_written:
-            print_table_header(line)
-            header_written = True
-        else:
-            print_line(line)
-
-print_table_ending()
+parser = Parser()
+parser.options = options
+parser.parse(filename)
     
             
         
