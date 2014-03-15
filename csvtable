@@ -18,6 +18,8 @@ class Parser(object):
     def indent(self,level):
         if not self.options.no_format:
             return "\t"*level
+        else:
+            return ""
 
     def write(self,string,level=0):
         sys.stdout.write(self.indent(level) + string)
