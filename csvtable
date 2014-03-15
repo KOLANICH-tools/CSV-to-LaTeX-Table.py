@@ -27,7 +27,13 @@ class Parser(object):
     
     def print_table_heading(self):
         '''Prints the LaTeX heading for the table'''
-        self.writeln("\\begin{table}")
+        self.write("\\begin{table}")
+        if self.options.position != "":
+            if self.options.position[0] == "[" and self.options.position[-1] == "]":
+                self.write(self.options.position)
+            else:
+                self.write("[" + self.options.position + "]")
+        self.writeln("")
         if self.options.centering:
             self.writeln("\\centering",1)
         self.write("\\begin{" + self.options.environment + "}",1)
@@ -110,9 +116,9 @@ optionparser.add_option("-T", "--table-spec",dest="table_spec",default="",help="
 optionparser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment.")
 optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
 optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
+optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
 
-#TODO: Latex table positioning
-#TODO: Table centering
+
 
 (options,args) = optionparser.parse_args()
 
