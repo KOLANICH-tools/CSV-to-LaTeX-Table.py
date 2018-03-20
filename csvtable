@@ -149,7 +149,7 @@ else:
     filename = options.filename
 
 if not os.path.isfile(filename):
-    print filename,"is not a valid file name. The file name should be specified with the '-f' option, or be the last argument."
+    print(filename,"is not a valid file name. The file name should be specified with the '-f' option, or be the last argument.")
     sys.exit(1)
     
 
