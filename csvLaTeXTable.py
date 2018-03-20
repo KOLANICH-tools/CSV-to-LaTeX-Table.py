@@ -71,15 +71,19 @@ class Parser(object):
         self.print_line(header)
         self.writeln("\\hline",2)
 
-    def get_line(self,line):
+    def get_line(self, line, citeColumns=None):
         line = self.correct_multiple_columns(line)
         line = line.split(self.options.delimiter)
         line = map(self.filter_characters,line)
+        if citeColumns is not None:
+            line = list(line)
+            for cC in citeColumns:
+                line[cC] = "\\cite{"+line[cC]+"}"
         return " & ".join(line)
 
-    def print_line(self,line):
+    def print_line(self,line, citeColumns=None):
         '''Print a regular line, but formatted'''
-        self.write(self.get_line(line),2)
+        self.write(self.get_line(line, citeColumns),2)
         self.writeln(" \\\\ ")
     
     def correct_multiple_columns(self,line):
@@ -101,9 +105,16 @@ class Parser(object):
                     self.print_table_header(line)
                     header_written = True
                 else:
-                    self.print_line(line)
+                    self.print_line(line, self.options.citeColumns)
 
         self.print_table_ending()
+
+commaSeparatedListRe=re.compile(", ?")
+def commaSeparatedList(listStr):
+    return [m for m in commaSeparatedListRe.split(listStr) if m]
+
+def integersList(listStr):
+    return [int(m) for m in commaSeparatedList(listStr) if m]
 
 def main():
     optionparser = OptionParser()
@@ -119,6 +130,7 @@ def main():
     optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
     optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
     optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
+    optionparser.add_option("-C", "--cite-columns", dest="citeColumns", type="string", default=None, help="wrap these columns into a \\cite")
 
 
 
@@ -127,7 +139,10 @@ def main():
     #If the tab flag is set, change the delimiter
     if options.use_tab:
         options.delimiter = "\t"
-        
+    
+    if options.citeColumns:
+        options.citeColumns=integersList(options.citeColumns)
+    
     #If the tabularx flag is set, use the tabularx environment
     if options.tabularx:
         options.environment = "tabularx"
