@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import sys
 import os
 from optparse import OptionParser
@@ -105,57 +105,57 @@ class Parser(object):
 
         self.print_table_ending()
 
+def main():
+    optionparser = OptionParser()
 
-optionparser = OptionParser()
-
-optionparser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
-optionparser.add_option("-d", "--delimiter",dest="delimiter",type="string",default=",",help="Specify the delimiter to use for splitting colums.")
-optionparser.add_option("-i", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
-optionparser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character.")
-optionparser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert.")
-optionparser.add_option("-n", "--no-format",dest="no_format",default=False,action="store_true",help="Do not format the source written out.")
-optionparser.add_option("-T", "--table-spec",dest="table_spec",default="",help="Specify the table spec to use (such as l for left justified, c for centered, etc.). Any strings with a pipe will be treated as the entire spec. Defaults to 'l'.")
-optionparser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment.")
-optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
-optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
-optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
+    optionparser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
+    optionparser.add_option("-d", "--delimiter",dest="delimiter",type="string",default=",",help="Specify the delimiter to use for splitting colums.")
+    optionparser.add_option("-i", "--ignore-multi",action="store_true",dest="ignore_multiple",default=False,help="Set whether multiple delimiters should be treated as one single delimeter or not.")
+    optionparser.add_option("-t", "--tab",dest="use_tab",default=False,action="store_true",help="A shortcut for setting the delimiter to a tab character.")
+    optionparser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert.")
+    optionparser.add_option("-n", "--no-format",dest="no_format",default=False,action="store_true",help="Do not format the source written out.")
+    optionparser.add_option("-T", "--table-spec",dest="table_spec",default="",help="Specify the table spec to use (such as l for left justified, c for centered, etc.). Any strings with a pipe will be treated as the entire spec. Defaults to 'l'.")
+    optionparser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment.")
+    optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
+    optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
+    optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
 
 
 
-(options,args) = optionparser.parse_args()
+    (options,args) = optionparser.parse_args()
 
-#If the tab flag is set, change the delimiter
-if options.use_tab:
-    options.delimiter = "\t"
-    
-#If the tabularx flag is set, use the tabularx environment
-if options.tabularx:
-    options.environment = "tabularx"
-else:
-    options.environment = "tabular"
-
-#If the multiline options is set make sure the table_spec defaults to X
-if options.multiline:
-    options.table_spec = "X"
-
-#If we still don't have a table spec then default to l
-if options.table_spec == "":
-    options.table_spec = "l"
-    
-#If a filename isn't specified then attempt to take the last argument
-if(options.filename == ""):
-    filename = sys.argv[len(sys.argv)-1]
-else:
-    filename = options.filename
-
-if not os.path.isfile(filename):
-    print(filename,"is not a valid file name. The file name should be specified with the '-f' option, or be the last argument.")
-    sys.exit(1)
-    
-
-parser = Parser()
-parser.options = options
-parser.parse(filename)
-    
-            
+    #If the tab flag is set, change the delimiter
+    if options.use_tab:
+        options.delimiter = "\t"
         
+    #If the tabularx flag is set, use the tabularx environment
+    if options.tabularx:
+        options.environment = "tabularx"
+    else:
+        options.environment = "tabular"
+
+    #If the multiline options is set make sure the table_spec defaults to X
+    if options.multiline:
+        options.table_spec = "X"
+
+    #If we still don't have a table spec then default to l
+    if options.table_spec == "":
+        options.table_spec = "l"
+        
+    #If a filename isn't specified then attempt to take the last argument
+    if(options.filename == ""):
+        filename = sys.argv[len(sys.argv)-1]
+    else:
+        filename = options.filename
+
+    if not os.path.isfile(filename):
+        print(filename,"is not a valid file name. The file name should be specified with the '-f' option, or be the last argument.")
+        sys.exit(1)
+        
+
+    parser = Parser()
+    parser.options = options
+    parser.parse(filename)
+
+if __name__=="__main__":
+    main()
