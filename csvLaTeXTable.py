@@ -4,6 +4,7 @@ import sys
 import os
 from optparse import OptionParser
 import re
+import codecs
 
 
 class Parser(object):
@@ -92,7 +93,7 @@ class Parser(object):
         self.print_table_heading()
         format_written = False
         header_written = False
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             for line in f:
                 if not format_written:
                     self.print_table_format(line)
@@ -106,6 +107,9 @@ class Parser(object):
         self.print_table_ending()
 
 def main():
+    if not sys.stdout.isatty():
+        sys.stdout=open(sys.stdout.fileno(), "wt", encoding="utf-8")
+    
     optionparser = OptionParser()
 
     optionparser.add_option("-H", "--no-header",dest="use_header",default=True,action="store_false",help="No header will be generated for the table.")
