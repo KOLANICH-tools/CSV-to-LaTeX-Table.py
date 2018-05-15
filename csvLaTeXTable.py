@@ -71,15 +71,17 @@ class Parser(object):
         self.print_line(header)
         self.writeln("\\hline",2)
 
-    def get_line(self,line):
+    def get_line(self,line, mathMode=False):
         line = self.correct_multiple_columns(line)
         line = line.split(self.options.delimiter)
         line = map(self.filter_characters,line)
+        if mathMode:
+            line = (  ( ("$"+el.replace("$", "\\$")+"$") if el else el ) for el in line  )
         return " & ".join(line)
 
-    def print_line(self,line):
+    def print_line(self,line, mathMode=False):
         '''Print a regular line, but formatted'''
-        self.write(self.get_line(line),2)
+        self.write(self.get_line(line, mathMode),2)
         self.writeln(" \\\\ ")
     
     def correct_multiple_columns(self,line):
@@ -101,7 +103,7 @@ class Parser(object):
                     self.print_table_header(line)
                     header_written = True
                 else:
-                    self.print_line(line)
+                    self.print_line(line, self.options.mathMode)
 
         self.print_table_ending()
 
@@ -119,7 +121,7 @@ def main():
     optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
     optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
     optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
-
+    optionparser.add_option("-M", "--math-mode",dest="mathMode",default=False,action="store_true",help="Apply math mode to cells.")
 
 
     (options,args) = optionparser.parse_args()
