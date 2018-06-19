@@ -30,22 +30,29 @@ class Parser(object):
     
     def print_table_heading(self):
         '''Prints the LaTeX heading for the table'''
-        self.write("\\begin{table}")
+        if self.options.custom:
+            self.write("\\begin{"+self.options.custom+"}")
+        else:
+            self.write("\\begin{table}")
         if self.options.position != "":
             if self.options.position[0] == "[" and self.options.position[-1] == "]":
                 self.write(self.options.position)
             else:
                 self.write("[" + self.options.position + "]")
-        self.writeln("")
-        if self.options.centering:
-            self.writeln("\\centering",1)
-        self.write("\\begin{" + self.options.environment + "}",1)
+        if not self.options.custom:
+            self.writeln("")
+            if self.options.centering:
+                self.writeln("\\centering",1)
+            self.write("\\begin{" + self.options.environment + "}",1)
     
     def print_table_ending(self):
         '''Prints the LaTeX ending for the table'''
         self.writeln("\\hline",2)
-        self.writeln("\\end{" + self.options.environment + "}",1)
-        self.writeln("\\end{table}")
+        if self.options.custom:
+            self.writeln("\\end{"+self.options.custom+"}")
+        else:
+            self.writeln("\\end{" + self.options.environment + "}",1)
+            self.writeln("\\end{table}")
 
     def print_table_format(self,line):
         '''Prints the format of the table, based on splitting the first line by the delimiter'''
@@ -140,6 +147,7 @@ def main():
     optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
     optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
     optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
+    optionparser.add_option("--custom", dest="custom", type="string", default="longtable", help="Don't use table and tabular, use a custom tag with longtable-compatible interface instead")
     optionparser.add_option("-D", "--data-only",dest="dataOnly",default=False,action="store_true",help="Don't wrap the data into anything, I'll do it myself! Useful if you wanna caption the table.")
     optionparser.add_option("-C", "--cite-columns", dest="citeColumns", type="string", default=None, help="wrap these columns into a \\cite")
     optionparser.add_option("-M", "--math-mode",dest="mathMode",default=False,action="store_true",help="Apply math mode to cells.")
