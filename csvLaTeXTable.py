@@ -89,21 +89,23 @@ class Parser(object):
         return line
         
     def parse(self,filename):
-        self.print_table_heading()
+        if not self.options.dataOnly:
+            self.print_table_heading()
         format_written = False
         header_written = False
         with open(filename) as f:
             for line in f:
-                if not format_written:
-                    self.print_table_format(line)
-                    format_written = True
+                if not self.options.dataOnly:
+                    if not format_written:
+                        self.print_table_format(line)
+                        format_written = True
                 if self.options.use_header and not header_written:
                     self.print_table_header(line)
                     header_written = True
                 else:
                     self.print_line(line)
-
-        self.print_table_ending()
+        if not self.options.dataOnly:
+            self.print_table_ending()
 
 def main():
     optionparser = OptionParser()
@@ -119,6 +121,7 @@ def main():
     optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
     optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
     optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
+    optionparser.add_option("-D", "--data-only",dest="dataOnly",default=False,action="store_true",help="Don't wrap the data into anything, I'll do it myself! Useful if you wanna caption the table.")
 
 
 
