@@ -90,21 +90,23 @@ class Parser(object):
         return line
         
     def parse(self,filename):
-        self.print_table_heading()
+        if not self.options.dataOnly:
+            self.print_table_heading()
         format_written = False
         header_written = False
         with open(filename, encoding="utf-8") as f:
             for line in f:
-                if not format_written:
-                    self.print_table_format(line)
-                    format_written = True
+                if not self.options.dataOnly:
+                    if not format_written:
+                        self.print_table_format(line)
+                        format_written = True
                 if self.options.use_header and not header_written:
                     self.print_table_header(line)
                     header_written = True
                 else:
                     self.print_line(line)
-
-        self.print_table_ending()
+        if not self.options.dataOnly:
+            self.print_table_ending()
 
 def main():
     if not sys.stdout.isatty():
@@ -119,10 +121,12 @@ def main():
     optionparser.add_option("-f", "--file",dest="filename",default="",help="Specify the file to convert.")
     optionparser.add_option("-n", "--no-format",dest="no_format",default=False,action="store_true",help="Do not format the source written out.")
     optionparser.add_option("-T", "--table-spec",dest="table_spec",default="",help="Specify the table spec to use (such as l for left justified, c for centered, etc.). Any strings with a pipe will be treated as the entire spec. Defaults to 'l'.")
+    optionparser.add_option("--environment",dest="environment",type="string", default=None, help="Specify the table environment.")
     optionparser.add_option("-x", "--tabularx",dest="tabularx",default=False,action="store_true",help="Use the tabularx environment instead of the tabular environment.")
     optionparser.add_option("-m", "--multiline",dest="multiline",default=False,action="store_true",help="Use multiline headers with dynamic expanding. The table spec defaults to X when using this option.")
     optionparser.add_option("-c", "--centering",dest="centering",default=False,action="store_true",help="Center the table.")
     optionparser.add_option("-p", "--position",dest="position",default="",help="Set the float position of the table (h,H,H!)")
+    optionparser.add_option("-D", "--data-only",dest="dataOnly",default=False,action="store_true",help="Don't wrap the data into anything, I'll do it myself! Useful if you wanna caption the table.")
 
 
 
@@ -131,12 +135,13 @@ def main():
     #If the tab flag is set, change the delimiter
     if options.use_tab:
         options.delimiter = "\t"
-        
-    #If the tabularx flag is set, use the tabularx environment
-    if options.tabularx:
-        options.environment = "tabularx"
-    else:
-        options.environment = "tabular"
+    
+    if options.environment is None:
+        #If the tabularx flag is set, use the tabularx environment
+        if options.tabularx:
+            options.environment = "tabularx"
+        else:
+            options.environment = "tabular"
 
     #If the multiline options is set make sure the table_spec defaults to X
     if options.multiline:

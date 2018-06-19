@@ -4,7 +4,6 @@ from setuptools import setup
 from setuptools.config import read_configuration
 import sys
 thisDir=os.path.dirname(__file__)
-import pdfminer as package
 cfg = read_configuration(os.path.join(thisDir, 'setup.cfg'))
 
 #print(cfg)
