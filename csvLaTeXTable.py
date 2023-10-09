@@ -5,7 +5,9 @@ import os
 from optparse import OptionParser
 import re
 import codecs
+from warnings import warn
 
+warn("We have moved from M$ GitHub to https://codeberg.org/KOLANICH-tools/CSV-to-LaTeX-Table.py , read why on https://codeberg.org/KOLANICH/Fuck-GuanTEEnomo .")
 
 class Parser(object):
 
